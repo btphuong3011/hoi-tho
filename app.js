@@ -311,7 +311,11 @@ function beginLive(withMic) {
 function scheduleFinish() {
   if (!live) return;
   const ready = current.press !== null && (current.end !== null || current.noisy);
-  if (ready && live.finishAt === null) live.finishAt = elapsed() + 900;
+  if (ready && live.finishAt === null) {
+    live.finishAt = elapsed() + 900;
+    const token = live;
+    setTimeout(() => { if (live === token) finishLive(); }, 950);
+  }
 }
 function finishLive() {
   if (!live) return;
