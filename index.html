@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hơi Thở mô phỏng đầu kẹp hỗ trợ tập phối hợp bấm–hít cho bình xịt định liều.">
+  <meta name="theme-color" content="#f3f1f6">
+  <title>Hơi Thở · Mô phỏng đầu gắn pMDI</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Đến mô phỏng</a>
+  <header class="site-head">
+    <div class="frame head-inner">
+      <a class="brand" href="#lab"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>Hơi Thở</a>
+      <nav aria-label="Nội dung nguyên mẫu" class="navigation">
+        <a href="#lab" aria-current="page">Mô phỏng</a>
+        <a href="#compare">Đối chiếu</a>
+        <a href="#design">Đầu kẹp</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="frame" id="main">
+    <div class="intro">
+      <div>
+        <p class="kicker">Đầu gắn hỗ trợ tập phối hợp bấm–hít</p>
+        <h1 id="lab-title" tabindex="-1">Hơi Thở<span>.</span></h1>
+      </div>
+      <p>Đặt thời điểm bấm và bắt đầu hít lên cùng một trục thời gian để thấy hai thao tác lệch nhau ở đâu.</p>
+    </div>
+
+    <section id="lab" class="view lab" aria-labelledby="lab-title">
+      <figure class="product">
+        <div class="product-image">
+          <img src="assets/dau-kep.webp" width="900" height="1350" alt="Phối cảnh ý tưởng đầu gắn tím kẹp ngoài thân bình xịt định liều màu ngà.">
+          <div class="indicator" id="indicator" data-state="idle"><span aria-hidden="true"></span><b id="led-text">Chờ lượt thử</b></div>
+        </div>
+        <figcaption>
+          <div><b>Đầu kẹp ngoài pMDI</b><small>Phối cảnh ý tưởng phần cứng</small></div>
+          <a href="#design" class="circle-link" aria-label="Xem thiết kế đầu kẹp">↗</a>
+        </figcaption>
+      </figure>
+
+      <div class="console">
+        <header class="console-head">
+          <div>
+            <h2>Bàn tín hiệu</h2>
+            <p>Hai kênh · Dữ liệu giả lập</p>
+          </div>
+          <button type="button" class="button quiet light" id="reset" aria-label="Đặt lại mô phỏng">Đặt lại</button>
+        </header>
+
+        <div class="scenarios" role="group" aria-label="Chọn ca diễn thử">
+          <button type="button" data-preset="early" aria-pressed="false"><span aria-hidden="true">←</span> Bấm sớm</button>
+          <button type="button" data-preset="matched" aria-pressed="false"><span aria-hidden="true">≈</span> Khớp nhịp</button>
+          <button type="button" data-preset="late" aria-pressed="false"><span aria-hidden="true">→</span> Bấm muộn</button>
+          <button type="button" data-preset="noisy" aria-pressed="false"><span aria-hidden="true">?</span> Nhiễu nền</button>
+        </div>
+
+        <figure class="signal-figure">
+          <figcaption class="legend">
+            <span class="breath-key"><i aria-hidden="true"></i>Kênh âm hít</span>
+            <span class="press-key"><i aria-hidden="true"></i>Mốc bấm</span>
+          </figcaption>
+          <div class="chart-container"><canvas id="signal" role="img" aria-label="Biểu đồ tín hiệu tổng hợp minh họa, mốc được ghi bằng chữ bên dưới."></canvas></div>
+          <div class="scrub">
+            <button type="button" id="play" class="button small light" disabled>Phát lại</button>
+            <input id="scrubber" type="range" min="0" max="3400" step="10" value="0" disabled aria-label="Rê tới thời điểm trong lượt thử">
+            <output for="scrubber" id="cursor-value" aria-live="off">0,00 s</output>
+          </div>
+        </figure>
+
+        <div class="readings" aria-label="Mốc đã ghi">
+          <div><span>Bắt đầu hít</span><output id="breath-readout">—</output></div>
+          <div><span>Bấm</span><output id="press-readout">—</output></div>
+          <div><span>Độ lệch bấm–hít</span><output id="delta-readout">—</output></div>
+        </div>
+
+        <div class="feedback" id="feedback" data-state="idle" role="status" aria-live="polite" aria-atomic="true">
+          <span id="feedback-symbol" aria-hidden="true">○</span>
+          <div><strong id="feedback-title">Chọn một ca để bắt đầu</strong><p id="feedback-text">Thử Bấm sớm rồi chọn ca Khớp nhịp để xem vị trí hai mốc thay đổi.</p></div>
+        </div>
+
+        <div class="manual">
+          <div class="manual-banner">
+            <div><h3>Tự diễn thử</h3><p>Điều khiển bằng nút trên màn hình.</p></div>
+            <button type="button" class="button primary" id="start">Bắt đầu lượt</button>
+          </div>
+          <div class="manual-controls" id="manual-controls" hidden>
+            <button type="button" class="button light" id="breath" aria-pressed="false">Bắt đầu hít giả lập</button>
+            <button type="button" class="button light" id="press">Ghi mốc bấm</button>
+            <button type="button" class="button quiet light" id="finish">Kết thúc lượt</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="compare" class="view compare" aria-labelledby="compare-title" hidden>
+      <header class="section-heading">
+        <p class="kicker">Đọc hai lượt cạnh nhau</p>
+        <h2 id="compare-title" tabindex="-1">Đối chiếu bấm–hít</h2>
+        <p>Hai biểu đồ dùng chung thang thời gian. Nét liền đánh dấu lúc hít, nét đứt đánh dấu lúc bấm.</p>
+      </header>
+      <div class="compare-grid">
+        <article class="compare-card">
+          <label for="compare-a">Lượt A</label>
+          <select id="compare-a"></select>
+          <div class="mini-chart"><canvas id="signal-a" role="img" aria-label="Biểu đồ giả lập của lượt A, các mốc được ghi dưới hình."></canvas></div>
+          <dl id="result-a" class="compare-readings"></dl>
+        </article>
+        <article class="compare-card">
+          <label for="compare-b">Lượt B</label>
+          <select id="compare-b"></select>
+          <div class="mini-chart"><canvas id="signal-b" role="img" aria-label="Biểu đồ giả lập của lượt B, các mốc được ghi dưới hình."></canvas></div>
+          <dl id="result-b" class="compare-readings"></dl>
+        </article>
+      </div>
+      <div class="compare-actions">
+        <p>Dữ liệu giả lập. Độ lệch chỉ mô tả hai mốc thời gian.</p>
+        <button type="button" class="button primary" id="print">In phiếu đối chiếu A4</button>
+      </div>
+    </section>
+
+    <section id="design" class="view design" aria-labelledby="design-title" hidden>
+      <header class="section-heading">
+        <p class="kicker">Kiến trúc đề xuất cho một mẫu pMDI</p>
+        <h2 id="design-title" tabindex="-1">Từ đầu kẹp đến tín hiệu</h2>
+        <p>Chọn một phần để xem thiết bị dự kiến ghi nhận được gì.</p>
+      </header>
+      <div class="design-grid">
+        <div class="parts" role="group" aria-label="Cấu phần đầu kẹp">
+          <button type="button" data-part="clip" aria-pressed="true"><span>01</span> Vỏ kẹp và gá</button>
+          <button type="button" data-part="switch" aria-pressed="false"><span>02</span> Công tắc hành trình</button>
+          <button type="button" data-part="mic" aria-pressed="false"><span>03</span> Micro MEMS</button>
+          <button type="button" data-part="chip" aria-pressed="false"><span>04</span> Xử lý tại chỗ</button>
+        </div>
+        <article class="part-detail" aria-live="polite">
+          <p class="kicker" id="part-tag"></p><h3 id="part-title"></h3><p id="part-description"></p>
+          <div class="part-test"><b>Đối chiếu trên bàn thử</b><p id="part-test"></p></div>
+        </article>
+      </div>
+      <div class="validation">
+        <h3>Trình tự kiểm chứng</h3>
+        <ol>
+          <li><b>Kiểm tra cơ khí</b><p>Đo lực bấm, hành trình và độ ổn định khi lắp trên mô hình tập không thuốc.</p></li>
+          <li><b>Gắn mốc tham chiếu</b><p>Đồng bộ tín hiệu từ công tắc và tín hiệu luồng khí tham chiếu trên bàn thử.</p></li>
+          <li><b>Thử ca nhiễu</b><p>Đo sai số hai mốc, tỷ lệ phát hiện lệch nhịp và tỷ lệ hệ thống từ chối kết luận.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="print-sheet" aria-labelledby="print-title">
+      <p class="kicker">HƠI THỞ · DỮ LIỆU GIẢ LẬP</p>
+      <h2 id="print-title">Phiếu đối chiếu hai lượt bấm–hít</h2>
+      <table>
+        <thead><tr><th scope="col">Mốc đối chiếu</th><th scope="col" id="print-a">Lượt A</th><th scope="col" id="print-b">Lượt B</th></tr></thead>
+        <tbody id="print-results"></tbody>
+      </table>
+      <p>Các mốc trên phiếu dùng để diễn thử phương pháp ghi nhận. Phiếu không đánh giá liều thuốc vào phổi hay toàn bộ kỹ thuật sử dụng bình.</p>
+    </section>
+  </main>
+
+  <footer class="frame footer">
+    <p>Nguyên mẫu web cho đầu gắn dự kiến · Chưa chế tạo hay thử nghiệm lâm sàng</p>
+    <a href="https://ginasthma.org/2026-gina-strategy-report/" target="_blank" rel="noopener noreferrer">Căn cứ hướng dẫn kỹ thuật hít ↗</a>
+  </footer>
+  <noscript><p class="frame">Bật JavaScript để thử các ca mô phỏng.</p></noscript>
+</body>
+</html>
