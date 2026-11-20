@@ -1,14 +1,38 @@
 # Hơi Thở
 
-[Mở demo trên GitHub Pages](https://btphuong3011.github.io/hoi-tho/) hoặc mở `index.html` để chạy ngoại tuyến. Bốn ca giả lập minh họa bấm sớm, khớp nhịp, bấm muộn và tín hiệu nhiễu. Tự tạo một lượt trong **Mô phỏng** hoặc mở **Đối chiếu** để đặt hai lượt cạnh nhau và in A4.
+Đầu gắn ngoài cho bình xịt định liều (pMDI), giúp người bệnh hen và COPD tập bấm thuốc đúng lúc bắt đầu hít trong buổi hướng dẫn với nhân viên y tế. Đây là nguyên mẫu web; phần cứng chưa được chế tạo.
 
-Đồ thị dùng tín hiệu tổng hợp và các mốc giả lập. Tham số 300 ms chỉ dùng cho demo. Thiết kế phần cứng dự kiến dùng công tắc hành trình và micro MEMS. Giữ `assets`, `app.js` và `styles.css` cạnh `index.html`.
+**Demo:** https://btphuong3011.github.io/hoi-tho/ (hoặc mở `index.html` để chạy ngoại tuyến).
 
-Phối cảnh [đầu gắn](assets/dau-kep.webp) được tạo bằng ImageGen tích hợp.
+## Trong demo có gì
 
-<details>
-<summary>Mô tả dùng để tạo phối cảnh</summary>
+- **Bốn ca mẫu:** bấm sớm, khớp nhịp, bấm muộn, nhiễu nền. Mỗi ca hiển thị tiếng luồng hít (kênh âm) và mốc bấm (công tắc) trên cùng một trục thời gian, kèm bốn chỉ số:
+  - bắt đầu hít;
+  - bấm;
+  - độ lệch bấm–hít;
+  - thời gian hít tiếp sau khi bấm.
+- **Tự tập:** có hai cách nhập tín hiệu.
+  - **Giữ nút:** giữ nút *Hít vào* trong lúc hít, bấm *Bấm bình* đúng lúc muốn xịt. Trên điện thoại dùng hai ngón; trên máy tính giữ phím cách để hít, phím B để bấm.
+  - **Micro của máy (thử nghiệm):** micro của máy đóng vai micro MEMS trên đầu gắn. Thuật toán chạy ngay trên trình duyệt; âm thanh không được ghi lại hay gửi đi.
+- **Đối chiếu:** đặt hai lượt (ca mẫu hoặc lượt tự tập) cạnh nhau và in phiếu A4 kèm biểu đồ.
+- **Đầu kẹp:** cấu phần, quy trình dùng trong buổi hướng dẫn, trình tự kiểm chứng và linh kiện dự kiến (khoảng 260.000 đ một bộ, giá bán lẻ tham khảo).
 
-A premium industrial design product concept mockup for a Vietnamese student biomedical engineering project. Single object centered in a portrait 2:3 composition, generous empty dark deep navy background. A realistic anonymous L-shaped pressurized metered-dose inhaler (pMDI), warm ivory injection-molded polymer housing, mouthpiece extends forward to the right at bottom, subtle silver metal pressurized canister visible at the top. An imagined removable small cobalt-violet smart add-on straddles the outside of the upper housing, with the canister still having an unobstructed flat pressing surface at top. A compact electronics bulge on the left exterior, a tiny soft turquoise LED on its top corner and a tiny acoustic port far from the mouthpiece. The mouthpiece and medicine outlet are clearly visible, with NO electronics mounted in them. Three-quarter product angle against near-black navy, soft violet/aqua rim lights, texture like a refined industrial product rendering, realistic materials and proportions, a subtle circular floor shadow. Composition fills frame with no cutoff and no extra objects. No words, branding, labels, diagrams, screens, hands, vapor, cross sections, connection cables or floating parts. Editorial industrial product visualization, plausible hardware concept, not a highly stylized sci-fi shape.
+## Thuật toán kênh âm (chế độ micro)
 
-</details>
+Thuật toán làm theo các bước sau:
+1. Lọc dải 400–6.000 Hz.
+2. Tính năng lượng RMS theo khung hình.
+3. Đo tiếng ồn nền trong 0,9 giây đầu.
+4. **Bắt đầu hít:** năng lượng vượt nền + max(6 dB; 2,5 độ lệch chuẩn) liên tục 120 ms.
+5. **Kết thúc hít:** năng lượng về dưới nền + 3 dB liên tục 300 ms.
+6. **Từ chối kết luận:** nếu đỉnh tín hiệu không cao hơn nền ít nhất 9 dB, hệ thống để trống mốc hít và độ lệch thay vì đoán.
+
+**Ngưỡng đánh giá:** khoảng 300 ms coi là "khớp nhịp" chỉ là tham số diễn thử, sẽ hiệu chỉnh trên bàn thử có tín hiệu luồng khí tham chiếu.
+
+## Số liệu nền
+
+- Lỗi phối hợp bấm–hít chiếm 45% lượt dùng pMDI (Sanchis và cộng sự, Chest 2016).
+- Bấm trước khi hít gặp ở 24,9% người dùng và đi kèm hen không kiểm soát, OR 1,55 (Price và cộng sự, J Allergy Clin Immunol Pract 2017).
+- Tại Nghệ An, tỷ lệ người bệnh COPD làm đúng là 81,7% ngay sau hướng dẫn, nhưng còn 55% sau một tháng (Hoàng Thị Bé và cộng sự, 2021).
+
+Phối cảnh [đầu gắn](assets/dau-kep.webp) được tạo bằng công cụ tạo ảnh và chỉ minh họa ý tưởng.
