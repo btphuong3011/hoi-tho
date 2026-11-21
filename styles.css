@@ -154,6 +154,9 @@ h1, h2, h3 { line-height: 1.14; }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .legend i { width: 12px; border-top: 2px solid var(--mint); }
 .legend .press-key i { border-color: var(--amber); border-top-style: dashed; }
+.legend .tonal-key i { height: 10px; border: 0; background: #c9c2dd40; border-radius: 2px; }
+.legend [hidden] { display: none; }
+.pad.meter.on b::after { content: " ●"; color: #ff8f8f; }
 .chart-container { height: clamp(140px, 15vw, 180px); }
 canvas { display: block; width: 100%; height: 100%; }
 .scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) 57px; gap: 9px; align-items: center; }
@@ -239,6 +242,28 @@ canvas { display: block; width: 100%; height: 100%; }
 .validation li::before { content: counter(step, decimal-leading-zero); font-size: .76rem; color: var(--violet); margin-right: 6px; font-weight: 750; }
 .validation li p { color: var(--muted); font-size: .84rem; margin-top: 4px; }
 .footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 18px; margin-top: 16px; margin-bottom: 22px; font-size: .82rem; color: var(--muted); }
+.bench .bench-lead { color: var(--muted); font-size: .9rem; max-width: 72ch; margin-top: 6px; }
+.bench .bench-meta { font-size: .78rem; color: var(--violet); font-weight: 650; margin-top: 6px; }
+.bench .bench-foot { font-size: .82rem; color: var(--muted); margin-top: 10px; max-width: 80ch; }
+.bench-tables { display: grid; gap: 14px; margin-top: 6px; }
+.bench-table caption { caption-side: top; text-align: left; font-weight: 700; font-size: .86rem; padding: 8px 10px 6px; background: #f5f1fa; }
+.bench-table td { white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; }
+.bench-table thead th:not(:first-child) { text-align: right; }
+.bench-table tbody th { font-weight: 550; }
+.snr { margin: 14px 0 0; padding: 10px 12px; background: #fff; border-radius: 8px; }
+.snr figcaption { font-size: .84rem; font-weight: 700; margin-bottom: 6px; }
+.snr .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 3px 0 9px; vertical-align: -1px; }
+.snr-row { display: grid; grid-template-columns: 52px 1fr 190px; gap: 10px; align-items: center; font-size: .8rem; padding: 2px 0; font-variant-numeric: tabular-nums; }
+.snr-row small { color: var(--muted); }
+.snr-bar { display: flex; height: 12px; border-radius: 3px; overflow: hidden; background: #eee; }
+.snr-bar i { display: block; height: 100%; }
+.snr .ok, .snr-bar .ok { background: #2a8c7e; }
+.snr .bad, .snr-bar .bad { background: #d9822b; }
+.snr .abst, .snr-bar .abst { background: #8d73c7; }
+.bench-notes { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: step; font-size: .88rem; display: grid; gap: 6px; max-width: 80ch; }
+.bench-scroll { overflow-x: auto; border-radius: 8px; }
+.bench-scroll .bench-table { margin-top: 0; }
+.bench-notes a { color: var(--violet); }
 .print-sheet { display: none; }
 
 @media (max-width: 920px) {
@@ -280,6 +305,9 @@ canvas { display: block; width: 100%; height: 100%; }
   .scrub { grid-template-columns: auto minmax(0, 1fr) 49px; gap: 5px; }
   .compare-actions { align-items: start; flex-direction: column; }
   .validation ol { grid-template-columns: 1fr; }
+  .bench-table { min-width: 640px; }
+  .snr-row { grid-template-columns: 44px 1fr; }
+  .snr-row small { grid-column: 2; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; }
@@ -287,19 +315,20 @@ canvas { display: block; width: 100%; height: 100%; }
 @page { size: A4; margin: 17mm; }
 @media print {
   body { color: #000; background: #fff; }
-  .site-head, .intro, .view, .footer, .skip, noscript { display: none !important; }
+  .site-head, .intro, .facts, .view, .footer, .skip, noscript { display: none !important; }
   .frame { width: auto; margin: 0; }
   .print-sheet { display: block; }
   .print-sheet .kicker { color: #333; }
   .print-sheet h2 { font-size: 1.55rem; margin-block: 6px 12px; }
   .print-sheet table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-bottom: 12px; }
-  .print-sheet th, .print-sheet td { text-align: left; border: 1px solid #888; padding: 8px; }
+  .print-sheet th, .print-sheet td { text-align: left; border: 1px solid #888; padding: 6px 8px; }
   .print-sheet thead { background: #ececec; }
   .print-sheet .print-meta { font-size: .88rem; margin-bottom: 10px; }
   .print-sheet figure { margin: 0 0 8px; }
   .print-sheet figure img { width: 100%; border: 1px solid #bbb; }
   .print-sheet figcaption { font-size: .82rem; color: #333; margin-top: 2px; }
   .print-sheet .print-notes { font-size: .9rem; line-height: 2; margin-top: 8px; }
+  .print-sheet .print-source { font-size: .84rem; margin-top: 8px; color: #222; }
   .print-sheet .print-steps { font-size: .88rem; margin-top: 8px; padding: 8px 10px; border: 1px solid #888; }
   .print-sheet .print-foot { font-size: .78rem; color: #333; margin-top: 8px; }
 }

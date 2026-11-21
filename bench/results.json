@@ -1,0 +1,466 @@
+{
+  "generated": "2026-11-21",
+  "settings": {
+    "sampleRate": 24000,
+    "frame": 1024,
+    "hop": 400,
+    "trialsPerCase": 50,
+    "seed": 5000,
+    "background": -62,
+    "window": 300,
+    "flatMin": 0.35
+  },
+  "cases": [
+    {
+      "id": "quiet",
+      "group": "breath",
+      "title": "Phòng yên, có tiếng tách khi bấm",
+      "note": "Tiếng hít cao hơn nền 15 dB",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 98,
+        "wrong": 2,
+        "medianError": 119,
+        "p90AbsError": 174
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 100,
+        "wrong": 0,
+        "medianError": 101,
+        "p90AbsError": 135
+      }
+    },
+    {
+      "id": "spray",
+      "group": "breath",
+      "title": "Có tiếng xịt của bình tập",
+      "note": "Tiếng xịt 120–200 ms ngay sau mốc bấm",
+      "v1": {
+        "n": 50,
+        "abstain": 2,
+        "reasons": {
+          "none": 1
+        },
+        "concluded": 98,
+        "correct": 74,
+        "wrong": 24,
+        "medianError": 105,
+        "p90AbsError": 721
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 2,
+        "reasons": {
+          "none": 1
+        },
+        "concluded": 98,
+        "correct": 98,
+        "wrong": 0,
+        "medianError": 99,
+        "p90AbsError": 137
+      }
+    },
+    {
+      "id": "fan",
+      "group": "breath",
+      "title": "Quạt chạy suốt lượt",
+      "note": "Quạt làm nền ồn hơn 6–12 dB",
+      "v1": {
+        "n": 50,
+        "abstain": 10,
+        "reasons": {
+          "none": 5
+        },
+        "concluded": 90,
+        "correct": 68,
+        "wrong": 22,
+        "medianError": 238,
+        "p90AbsError": 434
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 66,
+        "reasons": {
+          "weak": 32,
+          "none": 1
+        },
+        "concluded": 34,
+        "correct": 32,
+        "wrong": 2,
+        "medianError": 163,
+        "p90AbsError": 190
+      }
+    },
+    {
+      "id": "talk-before",
+      "group": "breath",
+      "title": "Có người nói trước lúc hít",
+      "note": "Câu nói kết thúc ít nhất 0,8 s trước khi hít",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 0,
+        "wrong": 100,
+        "medianError": -1978,
+        "p90AbsError": 2239
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 6,
+        "reasons": {
+          "sustained": 1,
+          "voice": 2
+        },
+        "concluded": 94,
+        "correct": 86,
+        "wrong": 8,
+        "medianError": 116,
+        "p90AbsError": 139
+      }
+    },
+    {
+      "id": "talk-over",
+      "group": "breath",
+      "title": "Có người nói chen đúng lúc bắt đầu hít",
+      "note": "Câu nói 1–2,2 s phủ lên mốc hít",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 80,
+        "wrong": 20,
+        "medianError": -280,
+        "p90AbsError": 682
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 80,
+        "reasons": {
+          "voice": 40
+        },
+        "concluded": 20,
+        "correct": 18,
+        "wrong": 2,
+        "medianError": 80,
+        "p90AbsError": 323
+      }
+    },
+    {
+      "id": "talk-only",
+      "group": "none",
+      "title": "Chỉ có tiếng nói, không hít",
+      "note": "Câu nói 1,2–3 s",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "falseConclusion": 100
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "tonal": 50
+        },
+        "falseConclusion": 0
+      }
+    },
+    {
+      "id": "press-only",
+      "group": "none",
+      "title": "Chỉ bấm và xịt, không hít",
+      "note": "Tiếng tách và tiếng xịt",
+      "v1": {
+        "n": 50,
+        "abstain": 34,
+        "reasons": {
+          "none": 17
+        },
+        "falseConclusion": 66
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "falseConclusion": 0
+      }
+    },
+    {
+      "id": "fan-on",
+      "group": "none",
+      "title": "Quạt bật giữa lượt",
+      "note": "Âm nền tăng 8–15 dB và kéo dài đến hết lượt",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "falseConclusion": 100
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "sustained": 50
+        },
+        "falseConclusion": 0
+      }
+    },
+    {
+      "id": "beep",
+      "group": "none",
+      "title": "Tiếng bíp kéo dài",
+      "note": "Âm đơn 1–2,8 kHz, 1,5–3 s",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "falseConclusion": 100
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "tonal": 50
+        },
+        "falseConclusion": 0
+      }
+    },
+    {
+      "id": "hum",
+      "group": "none",
+      "title": "Ngân dài “a…” hoặc “ừm…”",
+      "note": "Âm hữu thanh 1,5–3 s",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "falseConclusion": 100
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "tonal": 50
+        },
+        "falseConclusion": 0
+      }
+    },
+    {
+      "id": "hiss",
+      "group": "none",
+      "title": "Âm “xì…” kéo dài",
+      "note": "Âm xát vô thanh 1,5–3 s, phổ giống tiếng luồng khí",
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "falseConclusion": 100
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 6,
+        "reasons": {
+          "weak": 3
+        },
+        "falseConclusion": 94
+      }
+    }
+  ],
+  "snr": [
+    {
+      "snr": 20,
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 96,
+        "wrong": 4,
+        "medianError": 98,
+        "p90AbsError": 146
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 98,
+        "wrong": 2,
+        "medianError": 85,
+        "p90AbsError": 113
+      }
+    },
+    {
+      "snr": 12,
+      "v1": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 90,
+        "wrong": 10,
+        "medianError": 137,
+        "p90AbsError": 175
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 0,
+        "reasons": {},
+        "concluded": 100,
+        "correct": 96,
+        "wrong": 4,
+        "medianError": 104,
+        "p90AbsError": 142
+      }
+    },
+    {
+      "snr": 6,
+      "v1": {
+        "n": 50,
+        "abstain": 2,
+        "reasons": {
+          "none": 1
+        },
+        "concluded": 98,
+        "correct": 70,
+        "wrong": 28,
+        "medianError": 198,
+        "p90AbsError": 298
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 70,
+        "reasons": {
+          "weak": 34,
+          "none": 1
+        },
+        "concluded": 30,
+        "correct": 22,
+        "wrong": 8,
+        "medianError": 120,
+        "p90AbsError": 199
+      }
+    },
+    {
+      "snr": 3,
+      "v1": {
+        "n": 50,
+        "abstain": 68,
+        "reasons": {
+          "none": 34
+        },
+        "concluded": 32,
+        "correct": 18,
+        "wrong": 14,
+        "medianError": 300,
+        "p90AbsError": 532
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 25,
+          "weak": 25
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      }
+    },
+    {
+      "snr": 0,
+      "v1": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      }
+    },
+    {
+      "snr": -3,
+      "v1": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      }
+    },
+    {
+      "snr": -6,
+      "v1": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      },
+      "v2": {
+        "n": 50,
+        "abstain": 100,
+        "reasons": {
+          "none": 50
+        },
+        "concluded": 0,
+        "correct": 0,
+        "wrong": 0,
+        "medianError": null,
+        "p90AbsError": null
+      }
+    }
+  ]
+}

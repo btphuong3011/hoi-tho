@@ -6,11 +6,19 @@ const limit = (value, minimum, maximum) => Math.min(maximum, Math.max(value, min
 const $ = (id) => document.getElementById(id);
 
 const presets = {
-  early: { label: "Ca mẫu · Bấm sớm", onset: 1250, end: 3700, press: 460, duration: demoDuration },
-  matched: { label: "Ca mẫu · Khớp nhịp", onset: 520, end: 3950, press: 690, duration: demoDuration },
-  late: { label: "Ca mẫu · Bấm muộn", onset: 600, end: 3100, press: 1710, duration: demoDuration },
-  noisy: { label: "Ca mẫu · Nhiễu nền", onset: null, end: null, press: 920, duration: demoDuration, noisy: true },
+  early: { label: "Ca mẫu · Bấm sớm", onset: 1250, end: 3700, press: 460, duration: demoDuration, source: "preset" },
+  matched: { label: "Ca mẫu · Khớp nhịp", onset: 520, end: 3950, press: 690, duration: demoDuration, source: "preset" },
+  late: { label: "Ca mẫu · Bấm muộn", onset: 600, end: 3100, press: 1710, duration: demoDuration, source: "preset" },
+  noisy: { label: "Ca mẫu · Nhiễu nền", onset: null, end: null, press: 920, duration: demoDuration, noisy: true, source: "preset" },
 };
+// mỗi lượt ghi rõ số liệu đến từ đâu, cả trên màn hình lẫn phiếu in
+const sources = {
+  preset: { short: "ca mẫu dựng sẵn", text: "Ca mẫu dựng sẵn · dữ liệu minh họa", note: "Ca mẫu: dữ liệu dựng sẵn để minh họa, không phải lượt đo." },
+  hold: { short: "giữ nút", text: "Tự tập · mốc hít do người tập giữ nút", note: "Giữ nút: mốc bắt đầu hít do người tập tự đánh dấu bằng nút, không đo luồng khí." },
+  mic: { short: "micro", text: "Tự tập · mốc hít ước lượng từ micro của máy", note: "Micro: mốc bắt đầu hít ước lượng từ micro của máy tính hoặc điện thoại, chưa phải đầu kẹp, chưa hiệu chuẩn." },
+};
+const sourceOf = (trial) => sources[trial?.source ?? "preset"];
+const Detector = window.HoiThoDetector;
 const results = {
   idle: ["○", "Chọn một ca mẫu hoặc tự tập một lượt", "Thử Bấm sớm rồi Khớp nhịp để thấy vị trí hai mốc thay đổi, hoặc dùng hai nút bên dưới để tự tập."],
   running: ["●", "Đang ghi lượt tập", "Giữ nút Hít vào trong lúc hít, bấm Bấm bình đúng lúc bạn muốn xịt thuốc."],
@@ -22,6 +30,7 @@ const results = {
   "after-breath": ["→", "Bấm sau khi đã hít xong", "Thuốc phun ra lúc không còn luồng hít. Cần tập lại nhịp: bắt đầu hít rồi bấm ngay."],
   noisy: ["?", "Chưa đủ tín hiệu để kết luận", "Ghi được mốc bấm nhưng kênh âm không rõ, nên thiết bị để trống mốc hít và độ lệch thay vì đoán."],
   incomplete: ["?", "Thiếu mốc để đối chiếu", "Cần cả mốc bắt đầu hít và mốc bấm để tính độ lệch."],
+  aborted: ["×", "Đã hủy lượt", "Lượt dừng giữa chừng vì rời màn hình hoặc đặt lại. Micro đã tắt; lượt này không được lưu."],
 };
 const parts = {
   clip: {
@@ -39,8 +48,8 @@ const parts = {
   mic: {
     tag: "Kênh 2 · Mốc bắt đầu hít",
     title: "Micro MEMS gần khe hút khí",
-    description: "Khi hít, không khí đi vào qua khe quanh hộp thuốc ở phía trên thân bình. Micro đặt sát khe này, ngoài luồng thuốc, ghi tiếng luồng khí. Thuật toán so năng lượng âm với tiếng ồn nền để tìm lúc bắt đầu và kết thúc hít, đúng như chế độ Micro của máy trong mô phỏng.",
-    test: "Đối chiếu với tín hiệu luồng khí tham chiếu. Thử khi có tiếng nói, tiếng quạt và khi vị trí kẹp thay đổi. Nếu tín hiệu yếu, thử phương án dự phòng là cảm biến chênh áp nhỏ tại khe hút khí.",
+    description: "Khi hít, không khí đi vào qua khe quanh hộp thuốc ở phía trên thân bình. Micro đặt sát khe này, ngoài luồng thuốc, ghi tiếng luồng khí. Thuật toán xét cả năng lượng và độ phẳng phổ: tiếng luồng khí giống tiếng xì, còn tiếng nói, tiếng ngân, tiếng bíp có hài âm. Đoạn âm bắt đầu sát mốc công tắc phải kéo dài mới được tính, để không nhầm với tiếng xịt; có âm lạ quanh mốc hít thì đèn tím.",
+    test: "Bàn thử tín hiệu tổng hợp bên dưới cho thấy hai giới hạn: âm “xì” kéo dài vẫn bị nhận nhầm, và khi tiếng hít chỉ cao hơn nền khoảng 6 dB thì phần lớn lượt bị bỏ ngỏ. Bước kế tiếp là ghi âm thật trên bình tập, đối chiếu với tín hiệu luồng khí tham chiếu. Nếu micro bỏ ngỏ quá nhiều, chuyển sang cảm biến chênh áp nhỏ tại khe hút khí.",
   },
   chip: {
     tag: "Phản hồi",
@@ -70,8 +79,10 @@ let viewing = "lab";
 let replayOrigin = null;
 let frame = 0;
 let mode = "hold";
-let live = null; // { origin, phase, finishAt }
-let audio = null; // { ctx, analyser, buffer, stream }
+let live = null; // { origin, phase, finishAt, detector }
+let audio = null; // { ctx, analyser, buffer, stream } – chỉ tồn tại trong một lượt micro
+let micOpening = false;
+let aborted = false;
 
 // ---------- classification ----------
 function classify(trial) {
@@ -101,6 +112,7 @@ function readings(trial) {
 function coaching(trial) {
   const state = classify(trial);
   const [, title, text] = results[state];
+  if (state === "noisy" && trial.reason) return [title, `${Detector.reasons[trial.reason]}, nên để trống mốc hít và độ lệch thay vì đoán. Thử lại ở chỗ yên hơn, không nói trong lúc hít.`];
   const hold = afterPress(trial);
   const extra = hold === null ? "" : hold < 3000
     ? ` Sau khi bấm mới hít thêm ${oneDecimal.format(hold / 1000)} s; nên hít tiếp chậm, sâu khoảng 3–5 s.`
@@ -131,8 +143,9 @@ function sampledLevel(trial, time) {
 }
 const levelAt = (trial, time) => trial && trial.samples ? sampledLevel(trial, time) : synthLevel(trial, time);
 
-const darkTheme = { grid: "#333047", label: "#b5aecb", fill: "#69dec02b", trace: "#a9ebdf", onset: "#8de5d4", press: "#ffd19b", cursor: "#b6a0f077", bg: null };
-const printTheme = { grid: "#d6d6d6", label: "#444", fill: "#2a8c7e22", trace: "#1f6f63", onset: "#1f6f63", press: "#c26a00", cursor: null, bg: "#fff" };
+const darkTheme = { grid: "#333047", label: "#b5aecb", fill: "#69dec02b", trace: "#a9ebdf", onset: "#8de5d4", press: "#ffd19b", cursor: "#b6a0f077", tonal: "#b9aee052", bg: null };
+const printTheme = { grid: "#d6d6d6", label: "#444", fill: "#2a8c7e22", trace: "#1f6f63", onset: "#1f6f63", press: "#c26a00", cursor: null, tonal: "#0000001a", bg: "#fff" };
+const hasTonal = (trial) => Boolean(trial?.samples?.some((sample) => sample[2] === 2));
 function plot(canvas, trial, horizon, shown = horizon, pointer = null, theme = darkTheme, size = null) {
   const width = size ? size[0] : canvas.clientWidth;
   const height = size ? size[1] : canvas.clientHeight;
@@ -172,6 +185,17 @@ function plot(canvas, trial, horizon, shown = horizon, pointer = null, theme = d
     ctx.fillText(`${time / 1000} s`, x, height - 7);
   }
   ctx.stroke();
+
+  // khung micro nghe ra âm có cao độ (tiếng nói, tiếng ngân, tiếng bíp): tô nền xám
+  if (trial?.samples) {
+    ctx.fillStyle = theme.tonal;
+    const s = trial.samples;
+    for (let i = 1; i < s.length; i += 1) {
+      if (s[i][2] !== 2 || s[i][0] > shown) continue;
+      const x0 = xAt(Math.max(0, s[i - 1][0]));
+      ctx.fillRect(x0, top, Math.max(1, xAt(s[i][0]) - x0), base - top);
+    }
+  }
 
   const lastPoint = Math.min(shown, trial?.duration ?? horizon);
   const trace = new Path2D();
@@ -231,6 +255,7 @@ function updatePlayhead() {
 // ---------- lab rendering ----------
 function labState() {
   if (live) return live.phase;
+  if (aborted && !current) return "aborted";
   return classify(current);
 }
 function refreshLab() {
@@ -242,13 +267,13 @@ function refreshLab() {
   ["breath-readout", "press-readout", "delta-readout", "hold-readout"].forEach((id, index) => {
     $(id).textContent = live && index >= 2 ? "—" : values[index];
   });
-  const indicatorState = { noisy: "unknown", incomplete: "unknown", "after-breath": "late", calibrating: "running", listening: "running" };
+  const indicatorState = { noisy: "unknown", incomplete: "unknown", aborted: "idle", "after-breath": "late", calibrating: "running", listening: "running" };
   $("feedback").dataset.state = indicatorState[state] ?? state;
   $("feedback-symbol").textContent = symbol;
   $("feedback-title").textContent = title;
   $("feedback-text").textContent = text;
   $("indicator").dataset.state = $("feedback").dataset.state;
-  const led = { idle: "Chờ lượt thử", running: "Đang ghi mốc", calibrating: "Đo tiếng ồn", listening: "Micro đang nghe", noisy: "Tím · chưa đủ tín hiệu", incomplete: "Thiếu mốc" };
+  const led = { idle: "Chờ lượt thử", aborted: "Chờ lượt thử", running: "Đang ghi mốc", calibrating: "Đo tiếng ồn", listening: "Micro đang nghe", noisy: "Tím · chưa đủ tín hiệu", incomplete: "Thiếu mốc" };
   $("led-text").textContent = led[state] ?? (state === "matched" ? "Xanh · đúng nhịp" : "Vàng · lệch nhịp");
   for (const button of presetButtons) {
     button.setAttribute("aria-pressed", button.dataset.preset === selectedPreset);
@@ -264,13 +289,21 @@ function refreshLab() {
   scrubber.disabled = !current || Boolean(live);
   $("live-actions").hidden = !live;
   $("mic-start").hidden = !(mode === "mic" && !live);
+  $("mic-start").disabled = micOpening;
+  $("mic-start").textContent = micOpening ? "Đang mở micro…" : "Bắt đầu lượt";
+  $("mic-meter").classList.toggle("on", Boolean(audio));
+  if (!micOpening) $("mic-status").textContent = audio
+    ? "● Micro đang bật cho lượt này"
+    : "Micro chỉ bật khi bấm Bắt đầu lượt và tự tắt khi lượt kết thúc";
+  $("source-note").textContent = current ? sourceOf(current).text : "chọn ca mẫu hoặc tự tập";
+  $("tonal-key").hidden = !hasTonal(current);
   inhalePad.hidden = mode === "mic";
   $("mic-meter").hidden = mode !== "mic";
   pressPad.disabled = mode === "mic" && !live;
   pressPad.classList.toggle("done", Boolean(live && current?.press !== null));
   inhalePad.classList.toggle("done", Boolean(live && current?.end !== null));
   $("practice-hint").innerHTML = mode === "mic"
-    ? "Bấm <b>Bắt đầu lượt</b>, giữ yên một giây để đo tiếng ồn, rồi hít mạnh (hoặc thổi nhẹ) gần micro và bấm <b>Bấm bình</b> (phím B)."
+    ? "Bấm <b>Bắt đầu lượt</b>, giữ yên một giây để đo tiếng ồn, rồi hít mạnh (hoặc thổi nhẹ) gần micro và bấm <b>Bấm bình</b> (phím B). Không nói trong lúc tập: tiếng nói làm lượt bị bỏ ngỏ."
     : "Giữ nút <b>Hít vào</b> trong lúc hít như khi dùng bình thật, bấm <b>Bấm bình</b> đúng lúc muốn xịt thuốc. Trên máy tính: giữ <b>phím cách</b> để hít, phím <b>B</b> để bấm.";
   $("trial-count").textContent = userTrials.length ? `${userTrials.length} lượt tự tập trong phiên này · xem ở mục Đối chiếu` : "";
   updatePlayhead();
@@ -285,6 +318,7 @@ function stopReplay() {
 function loadPreset(key) {
   if (live) return;
   stopReplay();
+  aborted = false;
   selectedPreset = key;
   current = presets[key];
   cursor = current.duration;
@@ -296,11 +330,14 @@ const elapsed = () => Math.round(performance.now() - live.origin);
 function beginLive(withMic) {
   stopReplay();
   selectedPreset = null;
-  current = { label: `Lượt tự tập ${userTrials.length + 1}`, onset: null, end: null, press: null, duration: liveLimit, source: withMic ? "mic" : "hold" };
+  aborted = false;
+  const number = userTrials.length + 1;
+  current = { label: `Lượt tự tập ${number} · ${withMic ? "micro" : "giữ nút"}`, onset: null, end: null, press: null, duration: liveLimit, source: withMic ? "mic" : "hold" };
   if (withMic) {
     current.samples = [];
     current.floor = -70; current.peak = -60;
-    live = { origin: performance.now(), phase: "calibrating", finishAt: null, calib: [], run: null, quiet: null };
+    const size = audio.analyser.fftSize;
+    live = { origin: performance.now(), phase: "calibrating", finishAt: null, detector: new Detector.BreathDetector(), delay: Detector.frameDelayMs(size, audio.ctx.sampleRate) };
   } else {
     live = { origin: performance.now() - holdLead, phase: "running", finishAt: null };
   }
@@ -320,20 +357,35 @@ function scheduleFinish() {
 function finishLive() {
   if (!live) return;
   const t = elapsed();
-  if (current.onset !== null && current.end === null) current.end = Math.min(t, liveLimit);
   if (current.source === "mic") {
-    const snr = current.peak - current.floor;
-    if (current.onset === null || snr < 9) { current.noisy = true; current.onset = null; current.end = null; }
-  }
+    const verdict = live.detector.finish(t);
+    current.onset = verdict.onset;
+    current.end = verdict.end;
+    current.floor = verdict.floor ?? current.floor;
+    if (verdict.reason) { current.noisy = true; current.reason = verdict.reason; }
+  } else if (current.onset !== null && current.end === null) current.end = Math.min(t, liveLimit);
   const lastEvent = Math.max(current.end ?? 0, current.press ?? 0, current.onset ?? 0);
   current.duration = Math.max(demoDuration, Math.min(liveLimit, lastEvent + 800));
   if (current.samples) current.duration = Math.max(current.duration, Math.min(t, liveLimit));
   cursor = current.duration;
   live = null;
   cancelAnimationFrame(frame);
+  closeMic();
   inhalePad.classList.remove("holding");
   userTrials.push(current);
   setCompareOptions(true);
+  refreshLab();
+}
+// dừng lượt giữa chừng (rời màn hình, đặt lại): bỏ lượt và tắt micro
+function abortLive() {
+  if (!live) { closeMic(); return; }
+  live = null;
+  cancelAnimationFrame(frame);
+  closeMic();
+  inhalePad.classList.remove("holding");
+  current = null;
+  aborted = true;
+  cursor = 0;
   refreshLab();
 }
 function inhaleDown() {
@@ -350,67 +402,76 @@ function pressCanister() {
   if (viewing !== "lab") return;
   if (!live) { if (mode === "mic") return; beginLive(false); }
   if (live.phase === "calibrating") return;
-  if (current.press === null) { current.press = elapsed(); pressPad.classList.add("flash"); setTimeout(() => pressPad.classList.remove("flash"), 260); scheduleFinish(); refreshLab(); }
+  if (current.press === null) {
+    current.press = elapsed();
+    live.detector?.press(current.press);
+    pressPad.classList.add("flash");
+    setTimeout(() => pressPad.classList.remove("flash"), 260);
+    scheduleFinish();
+    refreshLab();
+  }
 }
 
-// microphone channel: band-passed RMS envelope, adaptive noise floor, onset when the envelope stays
-// above floor + max(6 dB, 2.5 SD) for 120 ms; end when it stays within floor + 3 dB for 300 ms.
-async function enableMic() {
+// Micro chỉ mở khi bắt đầu một lượt và đóng ngay khi lượt kết thúc, bị hủy, đổi chế độ hoặc rời màn hình.
+// Phát hiện mốc hít nằm trong detector.js (năng lượng + độ phẳng phổ), dùng chung với bàn thử bench/.
+async function openMic() {
   if (audio) return true;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = ctx.createMediaStreamSource(stream);
-    const highpass = ctx.createBiquadFilter(); highpass.type = "highpass"; highpass.frequency.value = 400;
-    const lowpass = ctx.createBiquadFilter(); lowpass.type = "lowpass"; lowpass.frequency.value = 6000;
-    const analyser = ctx.createAnalyser(); analyser.fftSize = 1024;
-    source.connect(highpass); highpass.connect(lowpass); lowpass.connect(analyser);
+    if (ctx.state === "suspended") await ctx.resume();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = ctx.sampleRate > 30000 ? 2048 : 1024; // khoảng 43 ms mỗi khung
+    ctx.createMediaStreamSource(stream).connect(analyser);
     audio = { ctx, analyser, buffer: new Float32Array(analyser.fftSize), stream };
-    meterLoop();
     return true;
   } catch (error) {
-    $("mic-status").textContent = "Không mở được micro (chưa cho phép hoặc máy không có micro). Có thể dùng chế độ Giữ nút.";
     return false;
   }
 }
-function micLevel() {
-  audio.analyser.getFloatTimeDomainData(audio.buffer);
-  let sum = 0;
-  for (const v of audio.buffer) sum += v * v;
-  return 20 * Math.log10(Math.sqrt(sum / audio.buffer.length) + 1e-9);
-}
-function meterLoop() {
+function closeMic() {
   if (!audio) return;
-  if (!live) {
-    const db = micLevel();
-    $("mic-bar").style.width = `${limit((db + 75) / 55, 0, 1) * 100}%`;
-  }
-  requestAnimationFrame(meterLoop);
+  for (const track of audio.stream.getTracks()) track.stop();
+  audio.ctx.close().catch(() => {});
+  audio = null;
+  $("mic-bar").style.width = "0%";
 }
-function micStep(t) {
-  const db = micLevel();
-  $("mic-bar").style.width = `${limit((db + 75) / 55, 0, 1) * 100}%`;
-  current.samples.push([t, db]);
-  if (live.phase === "calibrating") {
-    live.calib.push(db);
-    if (t >= 900) {
-      const sorted = [...live.calib].sort((a, b) => a - b);
-      const median = sorted[Math.floor(sorted.length / 2)];
-      const sd = Math.sqrt(live.calib.reduce((s, v) => s + (v - median) ** 2, 0) / live.calib.length);
-      current.floor = median; current.peak = median + 1;
-      live.threshold = median + Math.max(6, 2.5 * sd);
-      live.phase = "listening";
-      refreshLab();
-    }
+async function startMicTrial() {
+  if (live || micOpening || mode !== "mic") return;
+  micOpening = true;
+  refreshLab();
+  $("mic-status").textContent = "Đang xin quyền dùng micro…";
+  const ok = await openMic();
+  micOpening = false;
+  if (!ok) {
+    refreshLab();
+    $("mic-status").textContent = "Không mở được micro (chưa cho phép hoặc máy không có micro). Có thể dùng chế độ Giữ nút.";
     return;
   }
-  current.peak = Math.max(current.peak, db);
-  if (current.onset === null) {
-    if (db > live.threshold) { live.run = live.run ?? t; if (t - live.run >= 120) { current.onset = live.run; refreshLab(); } }
-    else live.run = null;
-  } else if (current.end === null) {
-    if (db < current.floor + 3) { live.quiet = live.quiet ?? t; if (t - live.quiet >= 300) { current.end = live.quiet; scheduleFinish(); refreshLab(); } }
-    else live.quiet = null;
+  if (mode !== "mic" || viewing !== "lab" || document.hidden) { closeMic(); refreshLab(); return; }
+  beginLive(true);
+}
+function micStep(t) {
+  audio.analyser.getFloatTimeDomainData(audio.buffer);
+  const features = Detector.analyzeFrame(audio.buffer, audio.ctx.sampleRate);
+  const at = t - live.delay;
+  const detector = live.detector;
+  $("mic-bar").style.width = `${limit((features.level + 75) / 55, 0, 1) * 100}%`;
+  detector.push(at, features);
+  const last = detector.frames[detector.frames.length - 1];
+  current.samples.push([at, features.level, last.kind]);
+  current.peak = Math.max(current.peak, features.level);
+  if (live.phase === "calibrating" && detector.phase !== "calibrating") {
+    live.phase = "listening";
+    current.floor = detector.floor;
+    current.peak = Math.max(current.peak, detector.floor + 1);
+    refreshLab();
+  }
+  if (detector.onset !== current.onset || detector.end !== current.end) {
+    current.onset = detector.onset;
+    current.end = detector.end;
+    if (current.end !== null) scheduleFinish();
+    refreshLab();
   }
 }
 
@@ -442,8 +503,9 @@ function trialFor(key) {
   if (key.startsWith("u")) return userTrials[Number(key.slice(1))];
   return presets[key];
 }
-const rowLabels = ["Bắt đầu hít", "Mốc bấm", "Độ lệch bấm–hít", "Hít tiếp sau bấm", "Nhận xét mô phỏng"];
-const comparisonRows = (trial) => [...readings(trial), results[classify(trial)][1]];
+const rowLabels = ["Nguồn số liệu", "Bắt đầu hít", "Mốc bấm", "Độ lệch bấm–hít", "Hít tiếp sau bấm", "Nhận xét"];
+const verdictText = (trial) => results[classify(trial)][1] + (trial.reason ? ` (${Detector.reasons[trial.reason].toLowerCase()})` : "");
+const comparisonRows = (trial) => [sourceOf(trial).text, ...readings(trial), verdictText(trial)];
 function updateComparison() {
   const trials = compareSelectors.map(select => trialFor(select.value));
   const horizon = Math.max(...trials.map(trial => trial.duration));
@@ -462,8 +524,11 @@ function updateComparison() {
     const off = document.createElement("canvas");
     plot(off, trial, horizon, horizon, null, printTheme, [640, 150]);
     $("print-chart-" + suffix).src = off.toDataURL("image/png");
-    $("print-cap-" + suffix).textContent = `Lượt ${suffix.toUpperCase()} · ${trial.label}`;
+    $("print-cap-" + suffix).textContent = `Lượt ${suffix.toUpperCase()} · ${trial.label} · Nguồn: ${sourceOf(trial).text}`;
   });
+  const used = [...new Set(trials.map((trial) => trial.source ?? "preset"))];
+  $("print-source").textContent = "Nguồn số liệu. " + used.map((key) => sources[key].note).join(" ")
+    + (trials.some(hasTonal) ? " Vùng xám: micro nghe ra âm có cao độ (tiếng nói, tiếng ngân, tiếng bíp)." : "");
   const columns = trials.map(comparisonRows);
   const rows = rowLabels.map((label, index) => {
     const tr = document.createElement("tr");
@@ -526,22 +591,110 @@ function selectPart(key) {
   $("part-test").textContent = test;
 }
 
+// ---------- bench ----------
+// Kết quả bàn thử tín hiệu tổng hợp (bench/run-bench.js sinh ra bench-results.js).
+const percent = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 2 });
+const plainMs = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 0 });
+const pctText = (value) => `${percent.format(value)}%`;
+function cellRow(cells, header = false) {
+  const tr = document.createElement("tr");
+  cells.forEach((value, index) => {
+    const cell = document.createElement(header ? "th" : index === 0 ? "th" : "td");
+    if (header) cell.scope = "col"; else if (index === 0) cell.scope = "row";
+    cell.textContent = value;
+    tr.append(cell);
+  });
+  return tr;
+}
+function benchTable(caption, head, rows) {
+  const table = document.createElement("table");
+  table.className = "bom bench-table";
+  const cap = document.createElement("caption");
+  cap.textContent = caption;
+  const thead = document.createElement("thead");
+  thead.append(cellRow(head, true));
+  const tbody = document.createElement("tbody");
+  tbody.append(...rows.map((row) => cellRow(row)));
+  table.append(cap, thead, tbody);
+  const wrap = document.createElement("div");
+  wrap.className = "bench-scroll";
+  wrap.append(table);
+  return wrap;
+}
+function renderBench() {
+  const data = window.HOI_THO_BENCH;
+  const host = $("bench");
+  if (!data || !host) return;
+  const byId = Object.fromEntries(data.cases.map((c) => [c.id, c]));
+  const breath = data.cases.filter((c) => c.group === "breath");
+  const none = data.cases.filter((c) => c.group === "none");
+  const lag = (m) => m.medianError === null ? "—" : `${plainMs.format(m.medianError)} ms`;
+  const tables = document.createElement("div");
+  tables.className = "bench-tables";
+  tables.append(
+    benchTable("Ca có hơi hít: phân loại bấm sớm, khớp nhịp hay bấm muộn", ["Ca", "Bản 20/11: kết luận sai", "Bản mới: kết luận sai", "Bản mới: bỏ ngỏ (đèn tím)", "Bản mới: nhận mốc hít muộn (trung vị)"],
+      breath.map((c) => [c.title, pctText(c.v1.wrong), pctText(c.v2.wrong), pctText(c.v2.abstain), lag(c.v2)])),
+    benchTable("Ca không có hơi hít: máy có “thấy” hơi hít không có thật không", ["Ca", "Bản 20/11: nhận nhầm", "Bản mới: nhận nhầm", "Bản mới: bỏ ngỏ (đèn tím)"],
+      none.map((c) => [c.title, pctText(c.v1.falseConclusion), pctText(c.v2.falseConclusion), pctText(c.v2.abstain)])),
+  );
+  const snr = document.createElement("figure");
+  snr.className = "snr";
+  const snrCaption = document.createElement("figcaption");
+  snrCaption.innerHTML = "Bản mới theo độ lớn tiếng hít so với nền: <i class=\"k ok\"></i>đúng <i class=\"k bad\"></i>sai <i class=\"k abst\"></i>bỏ ngỏ";
+  snr.append(snrCaption);
+  for (const row of data.snr) {
+    const line = document.createElement("div");
+    line.className = "snr-row";
+    const label = document.createElement("span");
+    label.textContent = `${row.snr > 0 ? "+" : ""}${row.snr} dB`;
+    const bar = document.createElement("span");
+    bar.className = "snr-bar";
+    bar.setAttribute("role", "img");
+    bar.setAttribute("aria-label", `Đúng ${pctText(row.v2.correct)}, sai ${pctText(row.v2.wrong)}, bỏ ngỏ ${pctText(row.v2.abstain)}`);
+    for (const [key, value] of [["ok", row.v2.correct], ["bad", row.v2.wrong], ["abst", row.v2.abstain]]) {
+      const part = document.createElement("i");
+      part.className = key;
+      part.style.width = `${value}%`;
+      bar.append(part);
+    }
+    const text = document.createElement("small");
+    text.textContent = `${pctText(row.v2.correct)} đúng · ${pctText(row.v2.wrong)} sai · ${pctText(row.v2.abstain)} bỏ ngỏ`;
+    line.append(label, bar, text);
+    snr.append(line);
+  }
+  const snr6 = data.snr.find((row) => row.snr === 6);
+  const notes = document.createElement("ul");
+  notes.className = "bench-notes";
+  const items = [
+    `Bản 20/11 chỉ dựa vào năng lượng nên nhận nhầm ${pctText(byId["talk-only"].v1.falseConclusion)} lượt chỉ có tiếng nói và ${pctText(byId.beep.v1.falseConclusion)} lượt có tiếng bíp. Bản mới không nhận nhầm các ca này mà bật đèn tím.`,
+    `Âm “xì” kéo dài vẫn bị nhận là hơi hít ở ${pctText(byId.hiss.v2.falseConclusion)} lượt: chỉ dựa vào âm thanh thì không tách được âm xát với tiếng luồng khí.`,
+    `Khi tiếng hít chỉ cao hơn nền 6 dB, ${pctText(snr6.v2.abstain)} lượt bị bỏ ngỏ; phòng có quạt chạy: ${pctText(byId.fan.v2.abstain)}. Ít kết luận sai nhưng cũng ít dùng được. Taylor và cộng sự (2018) ghi nhận tiếng hít qua pMDI khoảng 62 dBA khi gắn bộ tạo âm Flo-Tone, còn khoảng 35 dBA khi không gắn (60 L/phút).`,
+    `Trong mô hình tổng hợp, micro nhận mốc hít muộn hơn lúc luồng khí bắt đầu tăng khoảng ${lag(byId.quiet.v2)} (trung vị), vì tiếng chỉ đủ lớn khi lưu lượng đã tăng. Độ trễ thật phải đo và bù trên bàn thử có mốc luồng khí; ngưỡng 300 ms vẫn là tham số diễn thử.`,
+  ];
+  notes.append(...items.map((text) => { const li = document.createElement("li"); li.textContent = text; return li; }));
+  const link = document.createElement("a");
+  link.href = "https://pmc.ncbi.nlm.nih.gov/articles/PMC5794789/";
+  link.target = "_blank"; link.rel = "noopener noreferrer";
+  link.textContent = "Taylor, Sci Rep 2018 ↗";
+  notes.children[2].append(" ", link);
+  host.replaceChildren(tables, snr, notes);
+  $("bench-meta").textContent = `${data.settings.trialsPerCase} lượt mỗi ca · chạy ngày ${new Date(data.generated).toLocaleDateString("vi-VN")} · ngưỡng độ phẳng phổ ${percent.format(data.settings.flatMin)} chọn trên bộ ca hiệu chỉnh riêng`;
+}
+
 // ---------- events ----------
 for (const button of presetButtons) button.addEventListener("click", () => loadPreset(button.dataset.preset));
 for (const button of partButtons) button.addEventListener("click", () => selectPart(button.dataset.part));
 for (const select of compareSelectors) select.addEventListener("change", updateComparison);
-for (const button of modeButtons) button.addEventListener("click", async () => {
-  if (live) return;
-  if (button.dataset.mode === "mic") {
-    $("mic-status").textContent = "Đang xin quyền dùng micro…";
-    const ok = await enableMic();
-    if (!ok) { mode = "hold"; refreshLab(); return; }
-    $("mic-status").textContent = "Micro đã bật. Âm thanh chỉ được xử lý ngay trên trình duyệt, không ghi lại và không gửi đi.";
-  }
+for (const button of modeButtons) button.addEventListener("click", () => {
+  if (live || micOpening) return;
+  closeMic();
   mode = button.dataset.mode;
   refreshLab();
 });
-$("mic-start").addEventListener("click", () => { if (audio && !live) { if (audio.ctx.state === "suspended") audio.ctx.resume(); beginLive(true); } });
+$("mic-start").addEventListener("click", startMicTrial);
+// rời màn hình (chuyển tab, khóa máy, đóng trang): hủy lượt đang ghi và tắt micro
+document.addEventListener("visibilitychange", () => { if (document.hidden) abortLive(); });
+window.addEventListener("pagehide", abortLive);
 $("finish").addEventListener("click", () => finishLive());
 window.addEventListener("hashchange", () => showRoute(true));
 window.addEventListener("beforeprint", updateComparison);
@@ -586,6 +739,8 @@ $("reset").addEventListener("click", () => {
   stopReplay();
   cancelAnimationFrame(frame);
   live = null;
+  closeMic();
+  aborted = false;
   inhalePad.classList.remove("holding");
   current = null;
   selectedPreset = null;
@@ -599,6 +754,7 @@ new ResizeObserver(() => {
 }).observe($("main"));
 setCompareOptions();
 selectPart("clip");
+renderBench();
 showRoute(false);
 const presetHash = new URLSearchParams(location.search).get("ca");
 if (presetHash && presets[presetHash]) loadPreset(presetHash);

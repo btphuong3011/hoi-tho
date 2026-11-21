@@ -7,6 +7,8 @@
   <meta name="theme-color" content="#f3f1f6">
   <title>Hơi Thở · Tập bấm đúng lúc hít</title>
   <link rel="stylesheet" href="styles.css">
+  <script defer src="detector.js"></script>
+  <script defer src="bench-results.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -53,7 +55,7 @@
         <header class="console-head">
           <div>
             <h2>Bàn tín hiệu</h2>
-            <p>Hai kênh trên cùng một đồng hồ · dữ liệu giả lập</p>
+            <p>Hai kênh trên cùng một đồng hồ · <span id="source-note">chọn ca mẫu hoặc tự tập</span></p>
           </div>
           <button type="button" class="button quiet light" id="reset" aria-label="Đặt lại mô phỏng">Đặt lại</button>
         </header>
@@ -69,6 +71,7 @@
           <figcaption class="legend">
             <span class="breath-key"><i aria-hidden="true"></i>Tiếng luồng hít (kênh âm)</span>
             <span class="press-key"><i aria-hidden="true"></i>Mốc bấm (công tắc)</span>
+            <span class="tonal-key" id="tonal-key" hidden><i aria-hidden="true"></i>Âm có cao độ (tiếng nói, ngân, bíp)</span>
           </figcaption>
           <div class="chart-container"><canvas id="signal" role="img" aria-label="Biểu đồ tín hiệu, các mốc được ghi bằng chữ bên dưới."></canvas></div>
           <div class="scrub">
@@ -101,7 +104,7 @@
           <div class="pads">
             <button type="button" class="pad inhale" id="inhale-pad"><b>Hít vào</b><small>giữ trong lúc hít</small></button>
             <div class="pad meter" id="mic-meter" hidden>
-              <b>Micro</b><small id="mic-status">Nghe tiếng luồng hít</small>
+              <b>Micro</b><small id="mic-status" aria-live="polite">Micro chỉ bật khi bấm Bắt đầu lượt và tự tắt khi lượt kết thúc</small>
               <span class="meter-track" aria-hidden="true"><i id="mic-bar"></i></span>
               <button type="button" class="button primary" id="mic-start">Bắt đầu lượt</button>
             </div>
@@ -134,7 +137,7 @@
         </article>
       </div>
       <div class="compare-actions">
-        <p>Dữ liệu giả lập. Phiếu chỉ mô tả thời điểm của hai thao tác, không đánh giá liều thuốc vào phổi.</p>
+        <p>Mỗi lượt ghi rõ nguồn số liệu: ca mẫu dựng sẵn, giữ nút hoặc micro của máy. Phiếu chỉ mô tả thời điểm của hai thao tác, không đánh giá liều thuốc vào phổi.</p>
         <button type="button" class="button primary" id="print">In phiếu đối chiếu A4</button>
       </div>
     </section>
@@ -174,6 +177,13 @@
           <li><b>Thử ca nhiễu</b><p>Đo sai số hai mốc, tỷ lệ phát hiện lệch nhịp và tỷ lệ hệ thống từ chối kết luận.</p></li>
         </ol>
       </div>
+      <div class="validation bench">
+        <h3>Bàn thử kênh micro · tín hiệu tổng hợp</h3>
+        <p class="bench-lead">Trước khi làm đầu kẹp, thuật toán được thử trên âm thanh tổng hợp: tiếng hít, tiếng tách và tiếng xịt khi bấm, tiếng nói, quạt, tiếng bíp, tiếng ngân và âm “xì”. Mốc tham chiếu là lúc lưu lượng tổng hợp bắt đầu tăng. <b>Đây chưa phải ghi âm thật trên bình tập</b>; bàn thử chỉ cho biết logic xử lý đúng sai ở đâu và câu hỏi nào phải trả lời bằng phần cứng.</p>
+        <p class="bench-meta" id="bench-meta"></p>
+        <div id="bench"><p>Chưa tải được kết quả bàn thử.</p></div>
+        <p class="bench-foot">Bản 20/11 chỉ dựa vào năng lượng âm. Bản mới (đang chạy trong chế độ Micro của máy) thêm độ phẳng phổ, chặn tiếng xịt sát mốc bấm, bỏ qua đoạn giống tiếng nói và bỏ ngỏ khi có âm lạ quanh mốc hít. Mã nguồn và cách chạy lại: <a href="https://github.com/btphuong3011/hoi-tho/tree/main/bench" target="_blank" rel="noopener noreferrer">thư mục bench ↗</a></p>
+      </div>
       <div class="validation">
         <h3>Linh kiện dự kiến cho một bộ</h3>
         <table class="bom">
@@ -191,7 +201,7 @@
     </section>
 
     <section class="print-sheet" aria-labelledby="print-title">
-      <p class="kicker">HƠI THỞ · PHIẾU TẬP DÙNG BÌNH XỊT ĐỊNH LIỀU · DỮ LIỆU GIẢ LẬP</p>
+      <p class="kicker">HƠI THỞ · PHIẾU TẬP DÙNG BÌNH XỊT ĐỊNH LIỀU · NGUYÊN MẪU WEB</p>
       <h2 id="print-title">Phiếu đối chiếu hai lượt bấm–hít</h2>
       <p class="print-meta">Ngày: <span id="print-date"></span> · Người tập: ............................................ · Người hướng dẫn: ............................................</p>
       <figure><img id="print-chart-a" alt=""><figcaption id="print-cap-a"></figcaption></figure>
@@ -202,12 +212,13 @@
       </table>
       <p class="print-notes">Góp ý của nhân viên y tế: ........................................................................................................................................................................................................................................................................................</p>
       <p class="print-steps">Nhắc lại các bước: lắc bình · thở ra hết · ngậm kín đầu ngậm · bắt đầu hít chậm rồi bấm ngay · hít tiếp 3–5 giây · nín thở khoảng 10 giây.</p>
+      <p class="print-source" id="print-source"></p>
       <p class="print-foot">Nét liền: bắt đầu hít. Nét đứt: bấm. Phiếu dùng để diễn thử phương pháp ghi nhận; không đánh giá liều thuốc vào phổi hay thay thế đánh giá của nhân viên y tế.</p>
     </section>
   </main>
 
   <footer class="frame footer">
-    <p>Nguyên mẫu web cho đầu gắn dự kiến · Chưa chế tạo hay thử nghiệm lâm sàng · Micro (nếu bật) chỉ xử lý trên trình duyệt, không ghi lại</p>
+    <p>Nguyên mẫu web cho đầu gắn dự kiến · Chưa chế tạo hay thử nghiệm lâm sàng · Micro chỉ bật trong một lượt tập, xử lý ngay trên trình duyệt, không ghi lại, không gửi đi</p>
     <a href="https://ginasthma.org/2026-gina-strategy-report/" target="_blank" rel="noopener noreferrer">Căn cứ hướng dẫn kỹ thuật hít ↗</a>
   </footer>
   <noscript><p class="frame">Bật JavaScript để thử các ca mô phỏng.</p></noscript>
